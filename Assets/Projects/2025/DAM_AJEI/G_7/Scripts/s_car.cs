@@ -20,10 +20,8 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
 
         void FixedUpdate()
         {
-            angle = Quaternion.Angle(transform.rotation, volante.rotation);
+            angle = volante.rotation.z;
             
-
-
             transform.rotation = Quaternion.Euler(0, angle, 0);
             rb.velocity = transform.forward * speed * Time.deltaTime;
         }
