@@ -13,6 +13,9 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
 
         public List<Transform> targets;
         private int current_target;
+
+        private bool player_hit = false;
+        private float timer = 0;
         void Start()
         {
             agent = GetComponent<NavMeshAgent>();
@@ -39,6 +42,27 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
             {
                 agent.SetDestination(target.position);
                 agent.speed = 4;
+            }
+
+            if (player_hit)
+            {
+                timer += Time.deltaTime;
+                if (timer > 1)
+                {
+                    player_hit = false;
+                }
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Player") && !player_hit)
+            {
+                Vector3 dir = (transform.position - other.transform.position).normalized;
+
+                other.GetComponent<Rigidbody>().AddForce(dir * 100);
+                
+                player_hit = true;
             }
         }
     }
