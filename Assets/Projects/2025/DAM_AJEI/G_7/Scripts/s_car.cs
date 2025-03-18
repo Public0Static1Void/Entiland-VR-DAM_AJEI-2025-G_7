@@ -20,13 +20,21 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
 
         public Transform volante;
 
+        public ParticleSystem particles;
+
         public bool can_move = false;
 
         private bool adding_speed = false, removing_speed = false;
 
+        private AudioSource audioSource;
+
+        // Sonidos
+        public AudioClip car_engine, start_car_engine;
+
         void Start()
         {
             rb = GetComponent<Rigidbody>();
+            audioSource = GetComponent<AudioSource>();
 
             if (palanca_derecha_presionada != null ) { palanca_derecha_presionada.action.Enable(); }
             if (palanca_izquierda_presionada != null ) { palanca_izquierda_presionada.action.Enable(); }
@@ -39,10 +47,13 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
 
             palanca_derecha_suelta.action.performed += StopAdding;
             palanca_izquierda_suelta.action.performed += StopRemoving;
+
+            StartStopCar(!can_move);
         }
 
         private void Update()
         {
+
             if (adding_speed)
             {
                 speed += Time.deltaTime * 4;
@@ -65,6 +76,18 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
                 return;
             }
 
+            if (Physics.Raycast(transform.position, Vector2.down, out RaycastHit hit))
+            {
+                if (hit.distance > 1)
+                {
+                    can_move = false;
+                }
+                else
+                {
+                    can_move = true;
+                }
+            }
+
             angle = volante.rotation.z * 90;
             
             transform.rotation = Quaternion.Euler(0, angle, 0);
@@ -75,7 +98,33 @@ namespace EntilandVR.DosCinco.DAM_AJEI.G_Siete
         public void StartStopCar(bool v)
         {
             can_move = v;
+            if (can_move)
+            {
+                audioSource.loop = false;
+                audioSource.clip = start_car_engine;
+                audioSource.Play();
+                particles.Play();
+
+                StartCoroutine(StartCarMovingSound());
+            }
+            else
+            {
+                audioSource.Stop();
+                particles.Stop();
+            }
         }
+
+        private IEnumerator StartCarMovingSound()
+        {
+            while (audioSource.isPlaying && audioSource.clip == start_car_engine)
+            {
+                yield return null;
+            }
+            audioSource.clip = car_engine;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+
         public void AddSpeed(InputAction.CallbackContext con)
         {
             adding_speed = true;
